@@ -1,0 +1,485 @@
+<!-- templates/form.html -->
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VK Matrix Poster</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-text-color: rgba(255, 255, 255, 0.9);
+      --secondary-text-color: rgba(255, 255, 255, 0.6);
+      --background-color: #1a1a2e;
+      --glass-bg-light: rgba(255, 255, 255, 0.02);
+      --glass-bg-medium: rgba(255, 255, 255, 0.05);
+      --glass-bg-dark: rgba(255, 255, 255, 0.1);
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --accent-color: #00ffc3;
+      --button-gradient-start: #00ffc3;
+      --button-gradient-end: #00aaff;
+      --button-text-color: #1a1a2e;
+      --error-color: #ff4d4d;
+      --success-color: #00ffc3;
+      --summary-color: #f0e68c;
+      --font-family: 'Inter', sans-serif;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: var(--font-family);
+      background-color: var(--background-color);
+      color: var(--primary-text-color);
+      overflow: hidden;
+      position: relative;
+    }
+
+    #matrix-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px;
+      padding-top: 5vh;
+      height: 100vh;
+      box-sizing: border-box;
+      overflow-y: auto;
+      gap: 25px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      text-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color);
+      margin-bottom: 20px;
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: row;
+      gap: 25px;
+      width: 100%;
+      max-width: 1400px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .form-container, .log-container-wrapper {
+      background: var(--glass-bg-medium);
+      border: 1px solid var(--glass-border);
+      border-radius: 15px;
+      padding: 25px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      flex: 1;
+      min-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--accent-color);
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 10px;
+      margin-top: 0;
+    }
+
+    label {
+      font-weight: 400;
+      color: var(--secondary-text-color);
+      margin-bottom: -10px;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 12px;
+      background: var(--glass-bg-dark);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: var(--primary-text-color);
+      font-family: var(--font-family);
+      font-size: 1rem;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 8px var(--accent-color);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      flex-grow: 1;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--button-text-color);
+      background: linear-gradient(45deg, var(--button-gradient-start), var(--button-gradient-end));
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 255, 195, 0.4);
+    }
+
+    button:disabled {
+        background: var(--glass-bg-dark);
+        color: var(--secondary-text-color);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .stop-button {
+        background: linear-gradient(45deg, #ff4d4d, #ff8c8c);
+        display: none;
+    }
+
+    .stop-button:hover {
+        box-shadow: 0 4px 15px rgba(255, 77, 77, 0.4);
+    }
+
+    .log-section {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex: 1;
+    }
+
+    .log-box {
+      background: var(--glass-bg-light);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      height: 300px;
+      overflow-y: auto;
+      padding: 15px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      flex-grow: 1;
+    }
+
+    .log-box p {
+      margin: 0 0 5px 0;
+      padding: 0;
+      color: var(--primary-text-color);
+    }
+    .log-box p.error { color: var(--error-color); }
+    .log-box p.success { color: var(--success-color); }
+    .log-box p.summary { color: var(--summary-color); font-weight: bold; }
+    .log-box p.info-special { color: #87CEFA; } /* Light Sky Blue for special info */
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+      backdrop-filter: blur(5px);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: var(--glass-bg-dark);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 15px;
+      padding: 30px;
+      width: 80%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .modal-message {
+      color: var(--primary-text-color);
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+
+    .modal-button {
+      background: linear-gradient(45deg, var(--button-gradient-start), var(--button-gradient-end));
+      color: var(--button-text-color);
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 0.2s ease;
+    }
+    .modal-button:hover {
+        transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrix-canvas"></canvas>
+  <audio id="background-music" src="{{ url_for('static', filename='matrix.mp3') }}" loop></audio>
+
+  <div class="container">
+    <h1>VK Matrix Poster</h1>
+    <div class="button-group">
+      <button onclick="window.open('https://oauth.vk.com/authorize?client_id=6287487&scope=1073737727&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token&revoke=1', '_blank')">Отримати токен</button>
+      <button id="music-toggle-btn">Увімкнути музику</button>
+    </div>
+
+    <div class="main-content">
+      <!-- Форма для отправки -->
+      <div class="form-container">
+        <h2>Панель керування</h2>
+        <label for="token">Токен доступу (або URL з токеном)</label>
+        <input type="text" id="token" name="token" placeholder="Вставте сюди ваш токен...">
+
+        <label for="message">Текст повідомлення</label>
+        <textarea id="message" name="message" placeholder="Введіть текст вашого повідомлення..."></textarea>
+
+        <label for="attachments">Вкладення (кожен з нового рядка)</label>
+        <textarea id="attachments" name="attachments" placeholder="photo123_456&#10;video123_456"></textarea>
+      </div>
+
+      <!-- Контейнер для логов -->
+      <div class="log-container-wrapper">
+        <div class="log-section">
+            <h2>Закриті стіни (запропонувати новину)</h2>
+            <label for="group_links_closed">Список груп (кожна з нового рядка)</label>
+            <textarea id="group_links_closed" name="group_links_closed" placeholder="https://vk.com/group1&#10;https://vk.com/club2"></textarea>
+            <div class="button-group">
+                <button id="post-closed-btn" onclick="submitForm('closed')">Відправити</button>
+                <button id="stop-closed-btn" class="stop-button" onclick="stopProcess('closed')">Зупинити</button>
+            </div>
+            <div id="log-closed" class="log-box"></div>
+        </div>
+        <div class="log-section">
+            <h2>Відкриті стіни (пряма публікація)</h2>
+            <label for="group_links_open">Список груп (кожна з нового рядка)</label>
+            <textarea id="group_links_open" name="group_links_open" placeholder="https://vk.com/group3&#10;https://vk.com/club4"></textarea>
+            <div class="button-group">
+                <button id="post-open-btn" onclick="submitForm('open')">Відправити</button>
+                <button id="stop-open-btn" class="stop-button" onclick="stopProcess('open')">Зупинити</button>
+            </div>
+            <div id="log-open" class="log-box"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Кастомное модальное окно -->
+  <div id="custom-alert-modal" class="modal">
+    <div class="modal-content">
+      <p id="custom-alert-message" class="modal-message"></p>
+      <button class="modal-button" onclick="document.getElementById('custom-alert-modal').style.display = 'none';">OK</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%+-/~{[|`]}';
+    const fontSize = 16;
+    const columns = canvas.width / fontSize;
+    const drops = Array(Math.floor(columns)).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(26, 26, 46, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
+      ctx.font = `${fontSize}px monospace`;
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters.charAt(Math.floor(Math.random() * letters.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+    setInterval(drawMatrix, 40);
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+
+    const musicToggleBtn = document.getElementById('music-toggle-btn');
+    const backgroundMusic = document.getElementById('background-music');
+    musicToggleBtn.addEventListener('click', () => {
+        if (backgroundMusic.paused) {
+            backgroundMusic.play().catch(e => console.log("Не вдалося відтворити музику:", e));
+            musicToggleBtn.textContent = 'Зупинити музику';
+        } else {
+            backgroundMusic.pause();
+            musicToggleBtn.textContent = 'Увімкнути музику';
+        }
+    });
+
+    function customAlert(message) {
+      document.getElementById('custom-alert-message').textContent = message;
+      document.getElementById('custom-alert-modal').style.display = 'flex';
+    }
+
+    let eventSourceClosed = null;
+    let eventSourceOpen = null;
+
+    function setButtonsState(type, isRunning) {
+        const postClosedBtn = document.getElementById('post-closed-btn');
+        const stopClosedBtn = document.getElementById('stop-closed-btn');
+        const postOpenBtn = document.getElementById('post-open-btn');
+        const stopOpenBtn = document.getElementById('stop-open-btn');
+
+        postClosedBtn.disabled = isRunning;
+        postOpenBtn.disabled = isRunning;
+
+        if (isRunning) {
+            if (type === 'closed') {
+                stopClosedBtn.style.display = 'block';
+            } else {
+                stopOpenBtn.style.display = 'block';
+            }
+        } else {
+            stopClosedBtn.style.display = 'none';
+            stopOpenBtn.style.display = 'none';
+        }
+    }
+
+    function submitForm(type) {
+      const token = document.getElementById('token').value;
+      const message = document.getElementById('message').value;
+
+      if (!token || !message) {
+        customAlert('Будь ласка, заповніть токен та текст повідомлення.');
+        return;
+      }
+
+      const attachments = document.getElementById('attachments').value.split('\n').filter(line => line.trim() !== '');
+      const logBox = document.getElementById(`log-${type}`);
+      logBox.innerHTML = '';
+
+      let body = {
+        token: token,
+        message: message,
+        attachments: attachments,
+      };
+
+      let url = '';
+      let eventSource;
+      let groupLinks;
+
+      if (type === 'closed') {
+        groupLinks = document.getElementById('group_links_closed').value.split('\n').filter(line => line.trim() !== '');
+        url = '/post_to_closed';
+        if (eventSourceClosed) eventSourceClosed.close();
+        eventSourceClosed = new EventSource('/stream_closed');
+        eventSource = eventSourceClosed;
+      } else { // type === 'open'
+        groupLinks = document.getElementById('group_links_open').value.split('\n').filter(line => line.trim() !== '');
+        url = '/post_to_open';
+        if (eventSourceOpen) eventSourceOpen.close();
+        eventSourceOpen = new EventSource('/stream_open');
+        eventSource = eventSourceOpen;
+      }
+
+      if (groupLinks.length === 0) {
+          customAlert('Будь ласка, додайте посилання на групи.');
+          return;
+      }
+      body.group_links = groupLinks;
+
+      setButtonsState(type, true);
+
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      }).then(response => {
+        if (!response.ok) {
+            response.json().then(err => customAlert(`Помилка сервера: ${err.error || response.statusText}`)).catch(() => customAlert(`Помилка сервера: ${response.statusText}`));
+            setButtonsState(type, false);
+        }
+      }).catch(error => {
+        customAlert(`Помилка мережі: ${error}`);
+        setButtonsState(type, false);
+      });
+
+      eventSource.onmessage = function(event) {
+        try {
+            const data = JSON.parse(event.data);
+            const p = document.createElement('p');
+            p.textContent = data.message;
+            if (data.type) p.classList.add(data.type);
+            logBox.appendChild(p);
+            logBox.scrollTop = logBox.scrollHeight;
+
+            if (data.message.startsWith("Готово!") || data.message.includes("зупинено")) {
+                eventSource.close();
+                setButtonsState(type, false);
+            }
+        } catch (e) {
+            console.error("Помилка парсингу логів:", e, "Дані:", event.data);
+        }
+      };
+
+      eventSource.onerror = function() {
+        console.error(`Помилка EventSource для ${type}, закриття з'єднання.`);
+        if (eventSource) eventSource.close();
+        setButtonsState(type, false);
+      };
+    }
+
+    function stopProcess(type) {
+        fetch(`/stop_${type}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'stopping') {
+                    customAlert('Процес зупиняється...');
+                } else {
+                    customAlert('Не вдалося зупинити процес.');
+                }
+            }).catch(error => {
+                customAlert(`Помилка при спробі зупинки: ${error}`);
+            });
+    }
+  </script>
+</body>
+</html>
